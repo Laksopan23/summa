@@ -1,17 +1,22 @@
 import React from 'react';
 import { Form, Input, Select, Button, message, Card } from 'antd';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // import useNavigate
+
 
 const { Option } = Select;
 
 const SignUp = () => {
   const [form] = Form.useForm();
+  const navigate = useNavigate(); // initialize navigate
 
   const onFinish = async (values) => {
     try {
       await axios.post('http://localhost:5000/api/auth/register', values);
       message.success('Registration successful!');
       form.resetFields();
+      navigate('/login'); // navigate to login page
+
     } catch (err) {
       const msg = err.response?.data?.message || 'An error occurred';
       message.error(msg);
