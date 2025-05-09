@@ -1,33 +1,88 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Form, Input, Select, Button, message, Card } from 'antd';
 import axios from 'axios';
 
+const { Option } = Select;
+
 const SignUp = () => {
-  const [form, setForm] = useState({ username: '', password: '', confirmPassword: '', role: 'user' });
+  const [form] = Form.useForm();
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onFinish = async (values) => {
     try {
-      await axios.post('http://localhost:5000/api/auth/register', form);
-      alert('Registration successful!');
+      await axios.post('http://localhost:5000/api/auth/register', values);
+      message.success('Registration successful!');
+      form.resetFields();
     } catch (err) {
-          const message = err.response?.data?.message || 'An error occurred';
-      alert(message);
+      const msg = err.response?.data?.message || 'An error occurred';
+      message.error(msg);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input name="username" placeholder="Username" onChange={handleChange} /><br/>
-      <input name="password" type="password" placeholder="Password" onChange={handleChange} /><br/>
-      <input name="confirmPassword" type="password" placeholder="Confirm Password" onChange={handleChange} /><br/>
-      <select name="role" onChange={handleChange}>
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-      </select><br/>
-      <button type="submit">Sign Up</button>
-    </form>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <Card title="Sign Up" style={{ width: 400, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' }}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={{ role: 'user' }}
+        >
+          <Form.Item
+            name="username"
+            label="Username"
+            rules={[{ required: true, message: 'Please enter your username' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            label="Password"
+            rules={[{ required: true, message: 'Please enter your password' }]}
+            hasFeedback
+          >
+            <Input.Password />
+          </Form.Item>
+
+          <Form.Item
+            name="confirmPassword"
+            label="Confirm Password"
+            dependencies={['password']}
+            hasFeedback
+            rules={[
+              { required: true, message: 'Please confirm your password' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('password') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('Passwords do not match'));
+                },
+              }),
+            ]}
+          >
+            <Input.Password />
+          </Form.Item>
+
+          <Form.Item
+            name="role"
+            label="Role"
+            rules={[{ required: true, message: 'Please select a role' }]}
+          >
+            <Select>
+              <Option value="user">User</Option>
+              <Option value="admin">Admin</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block>
+              Sign Up
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
+    </div>
   );
 };
 
