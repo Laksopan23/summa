@@ -55,43 +55,9 @@ const sellerItems = [
   {
     key: "dashboard",
     icon: <HomeOutlined />,
-    label: "Home",
+    label: "TIME TRACKER",
   },
-  {
-    key: "shorts",
-    icon: <HomeOutlined />,
-    label: "Shorts",
-  },
-  {
-    key: "timer",
-    icon: <HomeOutlined />,
-    label: "Timer",
-  },
-  {
-    key: "selleraddpro",
-    icon: <HomeOutlined />,
-    label: "Products",
-  },
-  {
-    key: "addLay",
-    icon: <HomeOutlined />,
-    label: "Home Layouts",
-  },
-  {
-    key: "selorder",
-    icon: <HomeOutlined />,
-    label: "All Orders",
-  },
-  {
-    key: "category",
-    icon: <HomeOutlined />,
-    label: "Category",
-  },
-  {
-    key: "allcus",
-    icon: <HomeOutlined />,
-    label: "All Customers",
-  },
+  
 ];
 
 const headerIteam = [
@@ -131,35 +97,9 @@ const App = ({ children, userType }) => {
 
   const handleMenuClick = (item) => {
     if (item.key === "dashboard") {
-      navigate("/");
+      navigate("/user");
     }
-    if (item.key === "categories") {
-      navigate("/category");
-    }
-    if (item.key === "category") {
-      navigate("/category");
-    }
-    if (item.key === "shorts") {
-      navigate("/shorts");
-    }
-    if (item.key === "timer") {
-      navigate("/timer");
-    }
-    if (item.key === "addpro") {
-      navigate("/add-product");
-    }
-    if (item.key === "selleraddpro") {
-      navigate("/addsellpro");
-    }
-    if (item.key === "addLay") {
-      navigate("/add");
-    }
-    if (item.key === "selorder") {
-      navigate("/order");
-    }
-    if (item.key === "allcus") {
-      navigate("/allcus");
-    }
+    
     
   };
 

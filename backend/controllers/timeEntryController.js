@@ -46,12 +46,9 @@ exports.startTimeEntry = async (req, res) => {
 // Stop a time entry
 exports.stopTimeEntry = async (req, res) => {
   try {
-    console.log('stopTimeEntry called');
     const userId = req.user._id;
-    console.log('User ID:', userId);
     
     const timeEntry = await TimeEntry.findOne({ userId, isRunning: true });
-    console.log('Found running entry:', timeEntry);
     
     if (!timeEntry) {
       return res.status(404).json({ message: 'No running time entry found' });
@@ -59,21 +56,14 @@ exports.stopTimeEntry = async (req, res) => {
 
     const endTime = new Date();
     const duration = endTime - timeEntry.startTime;
-    console.log('Stopping time entry:', {
-      startTime: timeEntry.startTime,
-      endTime,
-      duration
-    });
 
     timeEntry.endTime = endTime;
     timeEntry.duration = duration;
     timeEntry.isRunning = false;
 
     await timeEntry.save();
-    console.log('Updated time entry:', timeEntry);
-    res.json(timeEntry);
+    res.json(timeEntry); // This now includes the _id field
   } catch (error) {
-    console.error('Error in stopTimeEntry:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -108,6 +98,46 @@ exports.getTimeEntries = async (req, res) => {
     res.json(timeEntries);
   } catch (error) {
     console.error('Error in getTimeEntries:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update time entry description
+exports.updateDescription = async (req, res) => {
+  try {
+    const { timeEntryId, description } = req.body;
+    const userId = req.user._id;
+
+    const timeEntry = await TimeEntry.findOne({ _id: timeEntryId, userId });
+    
+    if (!timeEntry) {
+      return res.status(404).json({ message: 'Time entry not found' });
+    }
+
+    timeEntry.description = description;
+    await timeEntry.save();
+
+    res.json(timeEntry);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete a time entry
+exports.deleteTimeEntry = async (req, res) => {
+  try {
+    const { timeEntryId } = req.params;
+    const userId = req.user._id;
+
+    const timeEntry = await TimeEntry.findOne({ _id: timeEntryId, userId });
+    
+    if (!timeEntry) {
+      return res.status(404).json({ message: 'Time entry not found' });
+    }
+
+    await TimeEntry.deleteOne({ _id: timeEntryId });
+    res.json({ message: 'Time entry deleted successfully' });
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 }; 

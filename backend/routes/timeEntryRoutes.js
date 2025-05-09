@@ -21,6 +21,12 @@ router.post('/start', timeEntryController.startTimeEntry);
 // Stop current time entry
 router.post('/stop', timeEntryController.stopTimeEntry);
 
+// Update time entry description
+router.post('/update-description', timeEntryController.updateDescription);
+
+// Delete a time entry
+router.delete('/:timeEntryId', timeEntryController.deleteTimeEntry);
+
 // Get current running time entry
 router.get('/current', timeEntryController.getCurrentTimeEntry);
 

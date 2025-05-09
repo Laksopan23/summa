@@ -8,6 +8,7 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 const UserHome = () => {
   const [projectName, setProjectName] = useState('');
+  const [description, setDescription] = useState('');
   const [isRunning, setIsRunning] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [stopTime, setStopTime] = useState(null);
@@ -17,6 +18,8 @@ const UserHome = () => {
   const [loading, setLoading] = useState(true);
   const [timeEntries, setTimeEntries] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [showDescriptionInput, setShowDescriptionInput] = useState(false);
+  const [editingEntry, setEditingEntry] = useState(null);
 
   // Check for running time entry and load history on component mount
   useEffect(() => {
@@ -72,10 +75,12 @@ const UserHome = () => {
         setIsRunning(false);
         setStopTime(end);
         setSummary({
+          _id: response.data._id,
           start: new Date(startTime),
           stop: end,
           duration: response.data.duration
         });
+        setShowDescriptionInput(true);
         // Refresh time entries after stopping
         loadTimeEntries();
       } else {
@@ -93,9 +98,57 @@ const UserHome = () => {
         setIsRunning(true);
         setStopTime(null);
         setSummary(null);
+        setDescription('');
+        setShowDescriptionInput(false);
       }
     } catch (error) {
       setError(error.response?.data?.message || 'An error occurred');
+    }
+  };
+
+  const handleSaveDescription = async () => {
+    try {
+      if (!summary || !summary._id) {
+        setError('No time entry found to update');
+        return;
+      }
+      
+      await axios.post('/api/time-entries/update-description', {
+        timeEntryId: summary._id,
+        description: description.trim()
+      });
+      
+      setShowDescriptionInput(false);
+      setDescription('');
+      loadTimeEntries(); // Refresh the history
+    } catch (error) {
+      setError('Failed to save description: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleEditDescription = async (entryId, newDescription) => {
+    try {
+      await axios.post('/api/time-entries/update-description', {
+        timeEntryId: entryId,
+        description: newDescription.trim()
+      });
+      setEditingEntry(null);
+      loadTimeEntries(); // Refresh the history
+    } catch (error) {
+      setError('Failed to update description: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleDeleteEntry = async (entryId) => {
+    if (!window.confirm('Are you sure you want to delete this time entry?')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`/api/time-entries/${entryId}`);
+      loadTimeEntries(); // Refresh the history
+    } catch (error) {
+      setError('Failed to delete time entry: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -221,6 +274,38 @@ const UserHome = () => {
           <p><strong>Start Time:</strong> {summary.start.toLocaleTimeString()}</p>
           <p><strong>Stop Time:</strong> {summary.stop.toLocaleTimeString()}</p>
           <p><strong>Total Time:</strong> {formatTime(summary.duration)}</p>
+          
+          {showDescriptionInput && (
+            <div style={{ marginTop: '1rem' }}>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add a description for this session..."
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '4px',
+                  minHeight: '100px',
+                  marginBottom: '0.5rem',
+                  fontSize: '14px'
+                }}
+              />
+              <button
+                onClick={handleSaveDescription}
+                style={{
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  padding: '0.5rem 1rem',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Save Description
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -245,17 +330,129 @@ const UserHome = () => {
                     borderBottom: '1px solid #e5e7eb',
                     backgroundColor: 'white',
                     marginBottom: '0.5rem',
-                    borderRadius: '4px'
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    ':hover': {
+                      backgroundColor: '#f9fafb'
+                    }
                   }}
+                  onClick={() => setEditingEntry(editingEntry === entry._id ? null : entry._id)}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <strong style={{ color: '#111827' }}>{entry.projectName}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <strong style={{ color: '#111827' }}>{entry.projectName}</strong>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingEntry(entry._id);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#3b82f6',
+                              cursor: 'pointer',
+                              padding: '0.25rem 0.5rem',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteEntry(entry._id);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#ef4444',
+                              cursor: 'pointer',
+                              padding: '0.25rem 0.5rem',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </div>
                       <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
                         {formatDate(entry.startTime)} - {entry.endTime ? formatDate(entry.endTime) : 'Running'}
                       </div>
+                      {editingEntry === entry._id ? (
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <textarea
+                            value={entry.description || ''}
+                            onChange={(e) => {
+                              const updatedEntries = timeEntries.map(te => 
+                                te._id === entry._id ? { ...te, description: e.target.value } : te
+                              );
+                              setTimeEntries(updatedEntries);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              width: '100%',
+                              padding: '0.5rem',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '4px',
+                              minHeight: '60px',
+                              marginBottom: '0.5rem',
+                              fontSize: '14px'
+                            }}
+                          />
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditDescription(entry._id, entry.description);
+                              }}
+                              style={{
+                                backgroundColor: '#10b981',
+                                color: 'white',
+                                padding: '0.25rem 0.5rem',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingEntry(null);
+                              }}
+                              style={{
+                                backgroundColor: '#6b7280',
+                                color: 'white',
+                                padding: '0.25rem 0.5rem',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        entry.description && (
+                          <div style={{ 
+                            marginTop: '0.5rem', 
+                            fontSize: '0.875rem', 
+                            color: '#4b5563',
+                            fontStyle: 'italic'
+                          }}>
+                            {entry.description}
+                          </div>
+                        )
+                      )}
                     </div>
-                    <div style={{ color: '#111827', fontWeight: '500' }}>
+                    <div style={{ color: '#111827', fontWeight: '500', marginLeft: '1rem' }}>
                       {formatTime(entry.duration || 0)}
                     </div>
                   </div>
