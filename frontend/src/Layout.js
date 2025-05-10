@@ -1,63 +1,79 @@
 import React, { useState, useEffect } from "react";
 import {
-  HomeOutlined,
-  LogoutOutlined,
-  UserSwitchOutlined,
+  ClockCircleOutlined,
   CalendarOutlined,
-  AppstoreAddOutlined,
-  CheckCircleOutlined,
-  ApartmentOutlined,
-  StockOutlined,
-  SyncOutlined,
+  AppstoreOutlined,
+  BarChartOutlined,
+  FileTextOutlined,
+  TeamOutlined,
+  UserOutlined,
+  TagsOutlined,
+  UserSwitchOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, theme, Button } from "antd";
-import { FloatButton } from "antd";
+import { Layout, Menu, theme, Button, FloatButton } from "antd";
 import { useNavigate } from "react-router-dom";
-//import imageSrc from "./logo.png";
 
 const { Header, Content, Footer, Sider } = Layout;
 const loggedInUserType = localStorage.getItem("usertype");
 
-const adminUserItems = [
-  {
-    key: "dashboard",
-    icon: <HomeOutlined />,
-    label: "Home",
-  },
-  {
-    key: "categories",
-    icon: <HomeOutlined />,
-    label: "Category",
-  },
-  {
-    key: "shorts",
-    icon: <HomeOutlined />,
-    label: "Shorts",
-  },
-  {
-    key: "timer",
-    icon: <HomeOutlined />,
-    label: "Timer",
-  },
-  {
-    key: "addpro",
-    icon: <HomeOutlined />,
-    label: "Add Products",
-  },
-  {
-    key: "addLay",
-    icon: <HomeOutlined />,
-    label: "Home Layouts",
-  },
-];
-
 const sellerItems = [
   {
-    key: "dashboard",
-    icon: <HomeOutlined />,
+    key: "time-tracker",
+    icon: <ClockCircleOutlined />,
     label: "TIME TRACKER",
   },
-  
+  {
+    key: "calendar",
+    icon: <CalendarOutlined />,
+    label: "CALENDAR",
+  },
+  {
+    type: "group",
+    label: "ANALYZE",
+    children: [
+      {
+        key: "dashboard",
+        icon: <AppstoreOutlined />,
+        label: "DASHBOARD",
+      },
+      {
+        key: "reports",
+        icon: <BarChartOutlined />,
+        label: "REPORTS",
+      },
+    ],
+  },
+  {
+    type: "group",
+    label: "MANAGE",
+    children: [
+      {
+        key: "projects",
+        icon: <FileTextOutlined />,
+        label: "PROJECTS",
+      },
+      {
+        key: "team",
+        icon: <TeamOutlined />,
+        label: "TEAM",
+      },
+      {
+        key: "clients",
+        icon: <UserOutlined />,
+        label: "CLIENTS",
+      },
+      {
+        key: "tags",
+        icon: <TagsOutlined />,
+        label: "TAGS",
+      },
+    ],
+  },
+  {
+    key: "show-more",
+    label: "SHOW MORE",
+  },
 ];
 
 const headerIteam = [
@@ -65,9 +81,21 @@ const headerIteam = [
   { key: "2", text: "Login", icon: <LogoutOutlined /> },
 ];
 
-const App = ({ children, userType }) => {
+const App = ({ children }) => {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const [isBackTopVisible, setIsBackTopVisible] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop =
+        document.documentElement.scrollTop || document.body.scrollTop;
+      setIsBackTopVisible(scrollTop > 0);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleHeaderClick = (key) => {
     if (key === "1") {
@@ -79,28 +107,8 @@ const App = ({ children, userType }) => {
     }
   };
 
-  const [isBackTopVisible, setIsBackTopVisible] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop =
-        document.documentElement.scrollTop || document.body.scrollTop;
-      setIsBackTopVisible(scrollTop > 0);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
   const handleMenuClick = (item) => {
-    if (item.key === "dashboard") {
-      navigate("/user");
-    }
-    
-    
+    navigate(`/${item.key}`);
   };
 
   const {
@@ -114,19 +122,19 @@ const App = ({ children, userType }) => {
         width={200}
         style={{
           backgroundColor: "white",
-          overflow: "hidden",
+          overflow: "auto",
           position: "fixed",
           height: "100vh",
           left: 0,
         }}
       >
-
         <Menu
           theme="light"
           mode="inline"
-          items={loggedInUserType === "admin" ? adminUserItems : sellerItems}
+          items={sellerItems}
           onClick={handleMenuClick}
-          style={{ backgroundColor: "white",marginTop:"100px" }}
+          style={{ backgroundColor: "white", marginTop: "100px" }}
+          inlineIndent={16}
         />
       </Sider>
 
