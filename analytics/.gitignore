@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VSCode settings
+.vscode/
+
+# Environment variables
+.env
+
+# Analytics reports and raw data
+analytics_report_*.json
+real_sessions.json
+
+# OS files
+.DS_Store
+Thumbs.db 

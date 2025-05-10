@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8fafc; }
+        .dashboard-card { box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-radius: 12px; margin-bottom: 2rem; }
+        .user-section { margin-bottom: 2rem; }
+        .metric { font-size: 1.2rem; }
+        .risk { color: #d9534f; font-weight: bold; }
+        .recommendation { color: #0d6efd; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <h1 class="mb-4 text-center">User Session Analytics Dashboard</h1>
+    {% if reports and reports|length > 0 %}
+        {% for report in reports %}
+        <div class="dashboard-card p-4 bg-white user-section">
+            <h4>User ID: <span class="text-secondary">{{ report.user_id }}</span></h4>
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <div class="metric">Next Session Probability:</div>
+                    <div class="display-6">{{ report.next_session_probability.probability | default('N/A') | round(2) * 100 if report.next_session_probability.probability is defined else 'N/A' }}%</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric">Predicted Next Session Duration:</div>
+                    <div class="display-6">{{ report.next_session_duration.predicted_duration_minutes | default('N/A') }} min</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric">Recommended Session Type:</div>
+                    <div class="recommendation">{{ report.session_type_recommendation.recommended_type | default('N/A') }}</div>
+                </div>
+            </div>
+            {% if report.churn_risk %}
+            <div class="mt-4">
+                <span class="risk">⚠ User at risk of churning!</span><br>
+                <small>Risk Score: {{ report.churn_risk.risk_score }} | Days Since Last Session: {{ report.churn_risk.days_since_last_session }}</small>
+            </div>
+            {% endif %}
+            <div class="mt-4">
+                <h6>Session Type Metrics:</h6>
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Type</th>
+                            <th>Avg Duration</th>
+                            <th>Completion Rate</th>
+                            <th>Total Sessions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for type, metrics in report.session_type_recommendation.type_metrics.items() %}
+                        <tr>
+                            <td>{{ type }}</td>
+                            <td>{{ metrics.avg_duration }}</td>
+                            <td>{{ metrics.completion_rate }}</td>
+                            <td>{{ metrics.total_sessions }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-warning text-center">No analytics data available. Please run the analytics script first.</div>
+    {% endif %}
+</div>
+</body>
+</html> 

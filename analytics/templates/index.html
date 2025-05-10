@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 900px; margin: 40px auto; background: #fff; padding: 32px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        h1 { color: #1976d2; }
+        .user-report { border-bottom: 1px solid #eee; margin-bottom: 24px; padding-bottom: 16px; }
+        .user-report:last-child { border-bottom: none; }
+        .label { font-weight: bold; color: #333; }
+        .value { color: #1976d2; }
+        .churn { color: #d32f2f; font-weight: bold; }
+        .recommend { color: #388e3c; font-weight: bold; }
+        pre { background: #f9f9f9; padding: 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Analytics Report</h1>
+        <div id="report"></div>
+    </div>
+    <script>
+        async function fetchReport() {
+            const res = await fetch('/api/report');
+            const data = await res.json();
+            const reportDiv = document.getElementById('report');
+            if (data.error) {
+                reportDiv.innerHTML = `<p style='color:red;'>${data.error}</p>`;
+                return;
+            }
+            let html = '';
+            data.forEach(user => {
+                html += `<div class='user-report'>`;
+                html += `<h2>User: <span class='value'>${user.user_id}</span></h2>`;
+                html += `<div><span class='label'>Next session probability:</span> <span class='value'>${(user.next_session_probability.probability*100).toFixed(2)}%</span></div>`;
+                if (typeof user.next_session_duration === 'object') {
+                    html += `<div><span class='label'>Predicted next session duration:</span> <span class='value'>${user.next_session_duration.predicted_duration_minutes} min</span></div>`;
+                }
+                html += `<div><span class='label'>Recommended session type:</span> <span class='recommend'>${user.session_type_recommendation.recommended_type}</span></div>`;
+                if (user.churn_risk) {
+                    html += `<div class='churn'>At risk of churning! (Risk score: ${user.churn_risk.risk_score})</div>`;
+                }
+                html += `<details><summary>Show full report</summary><pre>${JSON.stringify(user, null, 2)}</pre></details>`;
+                html += `</div>`;
+            });
+            reportDiv.innerHTML = html;
+        }
+        fetchReport();
+    </script>
+</body>
+</html> 
