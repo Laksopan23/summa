@@ -3,7 +3,7 @@ import Layout from '../../Layout';
 import axios from 'axios';
 
 // Configure axios defaults
-axios.defaults.baseURL = 'http://localhost:5000';
+axios.defaults.baseURL = 'http://localhost:5001';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 const UserHome = () => {
@@ -29,7 +29,7 @@ const UserHome = () => {
 
   const loadTimeEntries = async () => {
     try {
-      const response = await axios.get('/api/time-entries/history');
+      const response = await axios.get('http://localhost:5001/api/time-entries/history');
       setTimeEntries(response.data);
     } catch (error) {
       setError('Failed to load time entries');
@@ -40,7 +40,7 @@ const UserHome = () => {
 
   const checkCurrentTimeEntry = async () => {
     try {
-      const response = await axios.get('/api/time-entries/current');
+      const response = await axios.get('http://localhost:5001/api/time-entries/current');
       if (response.data) {
         setIsRunning(true);
         const startTimeDate = new Date(response.data.startTime);
@@ -70,7 +70,7 @@ const UserHome = () => {
       setError(null);
       if (isRunning) {
         // Stop the timer
-        const response = await axios.post('/api/time-entries/stop');
+        const response = await axios.post('http://localhost:5001/api/time-entries/stop');
         const end = new Date(response.data.endTime);
         setIsRunning(false);
         setStopTime(end);
@@ -89,7 +89,7 @@ const UserHome = () => {
           return;
         }
         // Start the timer
-        const response = await axios.post('/api/time-entries/start', {
+        const response = await axios.post('http://localhost:5001/api/time-entries/start', {
           projectName: projectName.trim()
         });
         const now = new Date(response.data.startTime).getTime();
@@ -113,7 +113,7 @@ const UserHome = () => {
         return;
       }
       
-      await axios.post('/api/time-entries/update-description', {
+      await axios.post('http://localhost:5001/api/time-entries/update-description', {
         timeEntryId: summary._id,
         description: description.trim()
       });
@@ -128,7 +128,7 @@ const UserHome = () => {
 
   const handleEditDescription = async (entryId, newDescription) => {
     try {
-      await axios.post('/api/time-entries/update-description', {
+      await axios.post('http://localhost:5001/api/time-entries/update-description', {
         timeEntryId: entryId,
         description: newDescription.trim()
       });
@@ -145,7 +145,7 @@ const UserHome = () => {
     }
 
     try {
-      await axios.delete(`/api/time-entries/${entryId}`);
+      await axios.delete(`http://localhost:5001/api/time-entries/${entryId}`);
       loadTimeEntries(); // Refresh the history
     } catch (error) {
       setError('Failed to delete time entry: ' + (error.response?.data?.message || error.message));

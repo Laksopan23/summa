@@ -12,7 +12,7 @@ const SignUp = () => {
 
   const onFinish = async (values) => {
     try {
-      await axios.post('http://localhost:5000/api/auth/register', values);
+      await axios.post('http://localhost:5001/api/auth/register', values);
       message.success('Registration successful!');
       form.resetFields();
       navigate('/login'); // navigate to login page
